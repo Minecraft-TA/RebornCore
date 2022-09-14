@@ -33,6 +33,7 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
 import reborncore.api.power.ExternalPowerHandler;
+import reborncore.api.power.ExternalPowerManager;
 import reborncore.api.power.IEnergyInterfaceTile;
 import reborncore.common.RebornCoreConfig;
 import reborncore.common.powerSystem.ExternalPowerSystems;
@@ -151,8 +152,13 @@ public class ForgePowerHandler implements ExternalPowerHandler {
 	 * Checks whether the provided tile is considered a powered tile by other power systems already
 	 */
 	private static boolean isOtherPoweredTile(TileEntity tileEntity, EnumFacing facing) {
-		return ExternalPowerSystems.externalPowerHandlerList.stream()
-				.filter(externalPowerManager -> !(externalPowerManager instanceof ForgePowerManager))
-				.anyMatch(externalPowerManager -> externalPowerManager.isPoweredTile(tileEntity, facing));
+        for (ExternalPowerManager externalPowerManager : ExternalPowerSystems.externalPowerHandlerList) {
+            if (!(externalPowerManager instanceof ForgePowerManager)) {
+                if (externalPowerManager.isPoweredTile(tileEntity, facing)) {
+                    return true;
+                }
+            }
+        }
+        return false;
 	}
 }

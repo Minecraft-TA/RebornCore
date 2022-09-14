@@ -39,10 +39,8 @@ import reborncore.common.util.ItemUtils;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class SlotConfiguration implements INBTSerializable<NBTTagCompound>{
 
@@ -76,8 +74,10 @@ public class SlotConfiguration implements INBTSerializable<NBTTagCompound>{
 			}
 		}
 		if(!machineBase.getWorld().isRemote && machineBase.getWorld().getTotalWorldTime() % machineBase.slotTransferSpeed() == 0){
-			getSlotDetails().forEach(slotConfigHolder -> slotConfigHolder.handleItemIO(machineBase));
-		}
+            for (SlotConfigHolder slotConfigHolder : getSlotDetails()) {
+                slotConfigHolder.handleItemIO(machineBase);
+            }
+        }
 	}
 
 	public SlotConfiguration(NBTTagCompound tagCompound){
@@ -113,7 +113,12 @@ public class SlotConfiguration implements INBTSerializable<NBTTagCompound>{
 	}
 
 	public List<SlotConfig> getSlotsForSide(EnumFacing facing){
-		return slotDetails.stream().map(slotConfigHolder -> slotConfigHolder.getSideDetail(facing)).collect(Collectors.toList());
+        List<SlotConfig> list = new ArrayList<>();
+        for (SlotConfigHolder slotConfigHolder : slotDetails) {
+            SlotConfig sideDetail = slotConfigHolder.getSideDetail(facing);
+            list.add(sideDetail);
+        }
+        return list;
 	}
 
 	@Override
@@ -145,8 +150,10 @@ public class SlotConfiguration implements INBTSerializable<NBTTagCompound>{
 		public SlotConfigHolder(int slotID) {
 			this.slotID = slotID;
 			sideMap = new HashMap<>();
-			Arrays.stream(EnumFacing.VALUES).forEach(facing -> sideMap.put(facing, new SlotConfig(facing, slotID)));
-		}
+            for (EnumFacing facing : EnumFacing.VALUES) {
+                sideMap.put(facing, new SlotConfig(facing, slotID));
+            }
+        }
 
 		public SlotConfigHolder(NBTTagCompound tagCompound) {
 			sideMap = new HashMap<>();
@@ -170,17 +177,17 @@ public class SlotConfiguration implements INBTSerializable<NBTTagCompound>{
 			if(!input && !output){
 				return;
 			}
-			getAllSides().stream()
-				.filter(config -> config.getSlotIO().getIoConfig() != ExtractConfig.NONE)
-				.forEach(config -> {
-				if(input && config.getSlotIO().getIoConfig() == ExtractConfig.INPUT){
-					config.handleItemInput(machineBase);
-				}
-				if(output && config.getSlotIO().getIoConfig() == ExtractConfig.OUTPUT){
-					config.handleItemOutput(machineBase);
-				}
-			});
-		}
+            for (SlotConfig config : getAllSides()) {
+                if (config.getSlotIO().getIoConfig() != ExtractConfig.NONE) {
+                    if (input && config.getSlotIO().getIoConfig() == ExtractConfig.INPUT) {
+                        config.handleItemInput(machineBase);
+                    }
+                    if (output && config.getSlotIO().getIoConfig() == ExtractConfig.OUTPUT) {
+                        config.handleItemOutput(machineBase);
+                    }
+                }
+            }
+        }
 
 		public boolean autoInput() {
 			return input;
@@ -210,8 +217,10 @@ public class SlotConfiguration implements INBTSerializable<NBTTagCompound>{
 		public NBTTagCompound serializeNBT() {
 			NBTTagCompound compound = new NBTTagCompound();
 			compound.setInteger("slotID", slotID);
-			Arrays.stream(EnumFacing.VALUES).forEach(facing -> compound.setTag("side_" + facing.ordinal(), sideMap.get(facing).serializeNBT()));
-			compound.setBoolean("input", input);
+            for (EnumFacing facing : EnumFacing.VALUES) {
+                compound.setTag("side_" + facing.ordinal(), sideMap.get(facing).serializeNBT());
+            }
+            compound.setBoolean("input", input);
 			compound.setBoolean("output", output);
 			compound.setBoolean("filter", filter);
 			return compound;
@@ -221,12 +230,12 @@ public class SlotConfiguration implements INBTSerializable<NBTTagCompound>{
 		public void deserializeNBT(NBTTagCompound nbt) {
 			sideMap.clear();
 			slotID = nbt.getInteger("slotID");
-			Arrays.stream(EnumFacing.VALUES).forEach(facing -> {
-				NBTTagCompound compound = nbt.getCompoundTag("side_" + facing.ordinal());
-				SlotConfig config = new SlotConfig(compound);
-				sideMap.put(facing, config);
-			});
-			input = nbt.getBoolean("input");
+            for (EnumFacing facing : EnumFacing.VALUES) {
+                NBTTagCompound compound = nbt.getCompoundTag("side_" + facing.ordinal());
+                SlotConfig config = new SlotConfig(compound);
+                sideMap.put(facing, config);
+            }
+            input = nbt.getBoolean("input");
 			output = nbt.getBoolean("output");
 			if(nbt.hasKey("filter")){ //Was added later, this allows old saves to be upgraded
 				filter = nbt.getBoolean("filter");

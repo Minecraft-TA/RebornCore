@@ -79,7 +79,12 @@ public class NetworkManager {
 	}
 
 	public static PacketDetails getPacketDetails(Class<? extends INetworkPacket> clazz){
-		return packetList.stream().filter(packetDetails -> packetDetails.packetClass.equals(clazz)).findAny().orElse(null);
+        for (PacketDetails packetDetails : packetList) {
+            if (packetDetails.packetClass.equals(clazz)) {
+                return packetDetails;
+            }
+        }
+        return null;
 	}
 
 	public static SimpleNetworkWrapper getWrapperForPacket(Class<? extends INetworkPacket> packetClass){

@@ -36,13 +36,11 @@ import net.minecraft.util.ITickable;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
-
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.wrapper.SidedInvWrapper;
-
 import reborncore.api.recipe.IRecipeCrafterProvider;
 import reborncore.api.tile.IContainerProvider;
 import reborncore.api.tile.IInventoryProvider;
@@ -62,7 +60,7 @@ import reborncore.common.recipes.RecipeCrafter;
 import reborncore.common.util.Inventory;
 
 import javax.annotation.Nullable;
-import java.util.Objects;
+import java.util.Arrays;
 import java.util.Optional;
 
 /**
@@ -93,7 +91,7 @@ public class RebornMachineTile extends TileEntity implements ITickable, ISidedIn
             NetworkManager.sendToAllAround(new CustomDescriptionPacket(this.pos, this.writeToNBT(new NBTTagCompound())), new NetworkRegistry.TargetPoint(this.world.provider.getDimension(), this.pos.getX(), this.pos.getY(), this.pos.getZ(), 64));
         }
     }
-    
+
     public void resetUpgrades() {
         resetPowerMulti();
         resetSpeedMulti();
@@ -167,7 +165,7 @@ public class RebornMachineTile extends TileEntity implements ITickable, ISidedIn
             return Optional.empty();
         }
     }
-    
+
     public boolean hasSlotConfig() {
         return true;
     }
@@ -198,7 +196,7 @@ public class RebornMachineTile extends TileEntity implements ITickable, ISidedIn
 		}
 		return;
     }
-    
+
     public boolean isActive() {
 		Block block = world.getBlockState(pos).getBlock();
 		if (block instanceof RebornMachineBlock) {
@@ -241,13 +239,13 @@ public class RebornMachineTile extends TileEntity implements ITickable, ISidedIn
         writeToNBT(compound);
         return compound;
     }
-    
+
     @Override
     public void onDataPacket(net.minecraft.network.NetworkManager net, SPacketUpdateTileEntity pkt) {
         super.onDataPacket(net, pkt);
         readFromNBT(pkt.getNbtCompound());
     }
-    
+
     // This stops the tile from getting cleared when the state is
     // updated(rotation and on/off)
     @Override
@@ -311,7 +309,7 @@ public class RebornMachineTile extends TileEntity implements ITickable, ISidedIn
         upgradeInventory.writeToNBT(tagCompound, "Upgrades");
         return tagCompound;
     }
-    
+
     @Override
     public ITextComponent getDisplayName() {
         if (getInventoryForTile().isPresent()) {
@@ -530,10 +528,20 @@ public class RebornMachineTile extends TileEntity implements ITickable, ISidedIn
         if (slotConfiguration == null) {
             return new int[]{}; //I think should be ok, if needed this can return all the slots
         }
-        return slotConfiguration.getSlotsForSide(side).stream()
-                .filter(Objects::nonNull)
-                .filter(slotConfig -> slotConfig.slotIO.ioConfig != SlotConfiguration.ExtractConfig.NONE)
-                .mapToInt(value -> value.slotID).toArray();
+        int[] arr = new int[10];
+        int count = 0;
+        for (SlotConfiguration.SlotConfig slotConfig : slotConfiguration.getSlotsForSide(side)) {
+            if (slotConfig != null) {
+                if (slotConfig.slotIO.ioConfig != SlotConfiguration.ExtractConfig.NONE) {
+                    int slotID = slotConfig.slotID;
+                    if (arr.length == count)
+                        arr = Arrays.copyOf(arr, count * 2);
+                    arr[count++] = slotID;
+                }
+            }
+        }
+        arr = Arrays.copyOfRange(arr, 0, count);
+        return arr;
     }
 
     @Override

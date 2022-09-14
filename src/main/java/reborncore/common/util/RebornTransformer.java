@@ -32,7 +32,6 @@ import org.objectweb.asm.tree.MethodNode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 //Having this DOES NOT make reborn core a core mod, it just has code to help other core mods
 //This is a basic wrapper around asm to allow for lamaba class transformers
@@ -62,19 +61,23 @@ public class RebornTransformer implements IClassTransformer {
 		}
 
 		private List<MethodTransformer> getMethodTransformers(MethodNode methodNode) {
-			return methodTransformers
-				.stream()
-				.filter(methodTransformer -> methodTransformer.name.equals(methodNode.name) && methodTransformer.desc.equals(methodNode.desc)) //TODO handle srg names in a nice way ;)
-				.collect(Collectors.toList());
+            //TODO handle srg names in a nice way ;)
+            List<MethodTransformer> list = new ArrayList<>();
+            for (MethodTransformer methodTransformer : methodTransformers) {
+                if (methodTransformer.name.equals(methodNode.name) && methodTransformer.desc.equals(methodNode.desc)) {
+                    list.add(methodTransformer);
+                }
+            }
+            return list;
 		}
 
 		private void handle(ClassNode classNode) {
-			classNode.methods
-				.forEach(methodNode ->
-					getMethodTransformers(methodNode)
-						.forEach(methodTransformer -> methodTransformer.handle(methodNode))
-				);
-		}
+            for (MethodNode methodNode : classNode.methods) {
+                for (MethodTransformer methodTransformer : getMethodTransformers(methodNode)) {
+                    methodTransformer.handle(methodNode);
+                }
+            }
+        }
 
 	}
 
@@ -105,15 +108,20 @@ public class RebornTransformer implements IClassTransformer {
 		}
 
 		private void handle(MethodNode methodNode) {
-			methodTransformers.forEach(methodNodeConsumer -> methodNodeConsumer.accept(methodNode));
-		}
+            for (Consumer<MethodNode> methodNodeConsumer : methodTransformers) {
+                methodNodeConsumer.accept(methodNode);
+            }
+        }
 	}
 
 	public List<ClassTransformer> getTransformers(String className) {
-		return classTransformers
-			.stream()
-			.filter(classTransformer -> classTransformer.name.equals(className))
-			.collect(Collectors.toList());
+        List<ClassTransformer> list = new ArrayList<>();
+        for (ClassTransformer classTransformer : classTransformers) {
+            if (classTransformer.name.equals(className)) {
+                list.add(classTransformer);
+            }
+        }
+        return list;
 	}
 
 	//Implimentation :D
@@ -124,9 +132,11 @@ public class RebornTransformer implements IClassTransformer {
 		if (!classTransformers.isEmpty()) {
 			ClassNode classNode = readClassFromBytes(basicClass);
 
-			classTransformers.forEach(classTransformer -> classTransformer.handle(classNode));
+            for (ClassTransformer classTransformer : classTransformers) {
+                classTransformer.handle(classNode);
+            }
 
-			return writeClassToBytes(classNode);
+            return writeClassToBytes(classNode);
 		}
 		return basicClass;
 	}

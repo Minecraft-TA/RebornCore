@@ -71,7 +71,11 @@ public class  PacketSlotSync implements INetworkPacket<PacketSlotSync> {
 		if(machineBase == null || machineBase.slotConfiguration == null || slotConfig == null || slotConfig.getSlotDetails() == null){
 			RebornCore.logHelper.error("Failed to sync slot data to " + pos);
 		}
-		Minecraft.getMinecraft().addScheduledTask(() -> slotConfig.getSlotDetails().forEach(slotConfigHolder -> machineBase.slotConfiguration.updateSlotDetails(slotConfigHolder)));
+		Minecraft.getMinecraft().addScheduledTask(() -> {
+            for (SlotConfiguration.SlotConfigHolder slotConfigHolder : slotConfig.getSlotDetails()) {
+                machineBase.slotConfiguration.updateSlotDetails(slotConfigHolder);
+            }
+        });
 
 	}
 }

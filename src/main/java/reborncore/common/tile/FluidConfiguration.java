@@ -27,14 +27,12 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
-
 import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -45,7 +43,9 @@ public class FluidConfiguration implements INBTSerializable<NBTTagCompound> {
 
     public FluidConfiguration() {
         sideMap = new HashMap<>();
-        Arrays.stream(EnumFacing.VALUES).forEach(facing -> sideMap.put(facing, new FluidConfig(facing)));
+        for (EnumFacing facing : EnumFacing.VALUES) {
+            sideMap.put(facing, new FluidConfig(facing));
+        }
     }
 
     public FluidConfiguration(NBTTagCompound tagCompound) {
@@ -122,7 +122,9 @@ public class FluidConfiguration implements INBTSerializable<NBTTagCompound> {
     @Override
     public NBTTagCompound serializeNBT() {
         NBTTagCompound compound = new NBTTagCompound();
-        Arrays.stream(EnumFacing.VALUES).forEach(facing -> compound.setTag("side_" + facing.ordinal(), sideMap.get(facing).serializeNBT()));
+        for (EnumFacing facing : EnumFacing.VALUES) {
+            compound.setTag("side_" + facing.ordinal(), sideMap.get(facing).serializeNBT());
+        }
         compound.setBoolean("input", input);
         compound.setBoolean("output", output);
         return compound;
@@ -131,11 +133,11 @@ public class FluidConfiguration implements INBTSerializable<NBTTagCompound> {
     @Override
     public void deserializeNBT(NBTTagCompound nbt) {
         sideMap.clear();
-        Arrays.stream(EnumFacing.VALUES).forEach(facing -> {
+        for (EnumFacing facing : EnumFacing.VALUES) {
             NBTTagCompound compound = nbt.getCompoundTag("side_" + facing.ordinal());
             FluidConfig config = new FluidConfig(compound);
             sideMap.put(facing, config);
-        });
+        }
         input = nbt.getBoolean("input");
         output = nbt.getBoolean("output");
     }

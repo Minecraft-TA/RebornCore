@@ -128,8 +128,13 @@ public class ForgePowerManager implements ExternalPowerManager {
 	 * Checks whether the provided tile is considered a powered tile by other power systems already
 	 */
 	private static boolean isOtherPoweredItem(ItemStack stack) {
-		return ExternalPowerSystems.externalPowerHandlerList.stream()
-				.filter(externalPowerManager -> !(externalPowerManager instanceof ForgePowerManager))
-				.anyMatch(externalPowerManager -> externalPowerManager.isPoweredItem(stack));
+        for (ExternalPowerManager externalPowerManager : ExternalPowerSystems.externalPowerHandlerList) {
+            if (!(externalPowerManager instanceof ForgePowerManager)) {
+                if (externalPowerManager.isPoweredItem(stack)) {
+                    return true;
+                }
+            }
+        }
+        return false;
 	}
 }

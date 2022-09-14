@@ -72,8 +72,10 @@ public class PacketFluidConfigSync implements INetworkPacket<PacketFluidConfigSy
 			RebornCore.logHelper.error("Failed to sync fluid config data to " + pos);
 		}
 		Minecraft.getMinecraft().addScheduledTask(() -> {
-			fluidConfiguration.getAllSides().forEach(fluidConfig -> machineBase.fluidConfiguration.updateFluidConfig(fluidConfig));
-			machineBase.fluidConfiguration.setInput(fluidConfiguration.autoInput());
+            for (FluidConfiguration.FluidConfig fluidConfig : fluidConfiguration.getAllSides()) {
+                machineBase.fluidConfiguration.updateFluidConfig(fluidConfig);
+            }
+            machineBase.fluidConfiguration.setInput(fluidConfiguration.autoInput());
 			machineBase.fluidConfiguration.setOutput(fluidConfiguration.autoOutput());
 		});
 

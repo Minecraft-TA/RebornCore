@@ -42,38 +42,56 @@ import java.util.List;
 @IRegistryFactory.RegistryFactory
 public class ExternalPowerSystems implements IRegistryFactory {
 
-	public static List<ExternalPowerManager> externalPowerHandlerList = new ArrayList<>();
+	public static ArrayList<ExternalPowerManager> externalPowerHandlerList = new ArrayList<>();
 
 
 	public static boolean isPoweredItem(ItemStack stack){
-		return externalPowerHandlerList.stream().anyMatch(externalPowerManager -> externalPowerManager.isPoweredItem(stack));
+        for (ExternalPowerManager externalPowerManager : externalPowerHandlerList) {
+            if (externalPowerManager.isPoweredItem(stack)) {
+                return true;
+            }
+        }
+        return false;
 	}
 
 	public static void dischargeItem(TilePowerAcceptor tilePowerAcceptor, ItemStack stack){
-		externalPowerHandlerList.stream()
-				.filter(externalPowerManager -> externalPowerManager.isPoweredItem(stack))
-				.forEach(externalPowerManager -> externalPowerManager.dischargeItem(tilePowerAcceptor, stack));
-	}
+        for (ExternalPowerManager externalPowerManager : externalPowerHandlerList) {
+            if (externalPowerManager.isPoweredItem(stack)) {
+                externalPowerManager.dischargeItem(tilePowerAcceptor, stack);
+            }
+        }
+    }
 
 	public static void chargeItem(TilePowerAcceptor tilePowerAcceptor, ItemStack stack){
-		externalPowerHandlerList.stream()
-				.filter(externalPowerManager -> externalPowerManager.isPoweredItem(stack))
-				.forEach(externalPowerManager -> externalPowerManager.chargeItem(tilePowerAcceptor, stack));
-	}
+        for (ExternalPowerManager externalPowerManager : externalPowerHandlerList) {
+            if (externalPowerManager.isPoweredItem(stack)) {
+                externalPowerManager.chargeItem(tilePowerAcceptor, stack);
+            }
+        }
+    }
 
 	public static boolean isPoweredTile(TileEntity tileEntity, EnumFacing facing) {
-		return externalPowerHandlerList.stream().anyMatch(externalPowerManager -> externalPowerManager.isPoweredTile(tileEntity, facing));
+        for (ExternalPowerManager externalPowerManager : externalPowerHandlerList) {
+            if (externalPowerManager.isPoweredTile(tileEntity, facing)) {
+                return true;
+            }
+        }
+        return false;
 	}
 
 	public static void chargeItem(ForgePowerItemManager powerAcceptor, ItemStack stack) {
-		externalPowerHandlerList.stream()
-				.filter(externalPowerManager -> externalPowerManager.isPoweredItem(stack))
-				.forEach(externalPowerManager -> externalPowerManager.chargeItem(powerAcceptor, stack));
-	}
+        for (ExternalPowerManager externalPowerManager : externalPowerHandlerList) {
+            if (externalPowerManager.isPoweredItem(stack)) {
+                externalPowerManager.chargeItem(powerAcceptor, stack);
+            }
+        }
+    }
 
 	public static void requestEnergyFromArmor(ForgePowerItemManager powerAcceptor, EntityLivingBase entity) {
-		externalPowerHandlerList.forEach(externalPowerManager -> externalPowerManager.requestEnergyFromArmor(powerAcceptor, entity));
-	}
+        for (ExternalPowerManager externalPowerManager : externalPowerHandlerList) {
+            externalPowerManager.requestEnergyFromArmor(powerAcceptor, entity);
+        }
+    }
 
 	@Override
 	public void handleClass(Class<?> clazz) {

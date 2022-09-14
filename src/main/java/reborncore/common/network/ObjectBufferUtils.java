@@ -25,11 +25,9 @@ package reborncore.common.network;
 
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.BlockPos;
-
 import net.minecraftforge.fluids.FluidStack;
 
 import java.math.BigInteger;
-import java.util.Arrays;
 import java.util.Objects;
 
 public enum ObjectBufferUtils {
@@ -80,8 +78,14 @@ public enum ObjectBufferUtils {
 	}
 
 	public static void writeObject(Object object, ExtendedPacketBuffer buffer){
-		ObjectBufferUtils utils = Arrays.stream(values()).filter(objectBufferUtils -> objectBufferUtils.clazz == object.getClass()).findFirst().orElse(null);
-		Objects.requireNonNull(utils, "No support found for " + object.getClass());
+        ObjectBufferUtils utils = null;
+        for (ObjectBufferUtils objectBufferUtils : values()) {
+            if (objectBufferUtils.clazz == object.getClass()) {
+                utils = objectBufferUtils;
+                break;
+            }
+        }
+        Objects.requireNonNull(utils, "No support found for " + object.getClass());
 		buffer.writeInt(utils.ordinal());
 		utils.writer.write(object, buffer);
 	}

@@ -29,14 +29,16 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.common.capabilities.Capability;
 import reborncore.api.IListInfoProvider;
-import reborncore.api.power.*;
+import reborncore.api.power.EnumPowerTier;
+import reborncore.api.power.ExternalPowerHandler;
+import reborncore.api.power.ExternalPowerManager;
+import reborncore.api.power.IEnergyInterfaceTile;
 import reborncore.common.RebornCoreConfig;
 import reborncore.common.tile.RebornMachineTile;
 import reborncore.common.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 public abstract class TilePowerAcceptor extends RebornMachineTile implements
 	IEnergyInterfaceTile, IListInfoProvider // TechReborn
@@ -69,10 +71,14 @@ public abstract class TilePowerAcceptor extends RebornMachineTile implements
 
 	private void setupManagers(){
 		final TilePowerAcceptor tile = this;
-		powerManagers = ExternalPowerSystems.externalPowerHandlerList.stream()
-			.map(externalPowerManager -> externalPowerManager.createPowerHandler(tile))
-			.filter(Objects::nonNull)
-			.collect(Collectors.toList());
+        List<ExternalPowerHandler> list = new ArrayList<>();
+        for (ExternalPowerManager externalPowerManager : ExternalPowerSystems.externalPowerHandlerList) {
+            ExternalPowerHandler powerHandler = externalPowerManager.createPowerHandler(tile);
+            if (powerHandler != null) {
+                list.add(powerHandler);
+            }
+        }
+        powerManagers = list;
 	}
 
 
@@ -85,7 +91,7 @@ public abstract class TilePowerAcceptor extends RebornMachineTile implements
 			}
 		}
 	}
-	
+
 	public void setExtraPowerStoage(double extraPowerStoage) {
 		this.extraPowerStoage = extraPowerStoage;
 	}
@@ -100,7 +106,7 @@ public abstract class TilePowerAcceptor extends RebornMachineTile implements
 
 	/**
 	 * Charge machine from battery placed inside inventory slot
-	 * 
+	 *
 	 * @param slot int Slot ID for battery slot
 	 */
 	public void charge(int slot) {
@@ -144,7 +150,7 @@ public abstract class TilePowerAcceptor extends RebornMachineTile implements
 	public boolean shouldHanldeEnergyNBT() {
 		return true;
 	}
-	
+
 	public boolean handleTierWithPower() {
 		return true;
 	}
@@ -166,12 +172,14 @@ public abstract class TilePowerAcceptor extends RebornMachineTile implements
 			return;
 		}
 
-		powerManagers.forEach(ExternalPowerHandler::tick);
+        for (ExternalPowerHandler powerManager : powerManagers) {
+            powerManager.tick();
+        }
 
-		powerChange = getEnergy() - powerLastTick;
+        powerChange = getEnergy() - powerLastTick;
 		powerLastTick = getEnergy();
 	}
-	
+
 	@Override
 	public void readFromNBT(NBTTagCompound tag) {
 		super.readFromNBT(tag);
@@ -188,7 +196,7 @@ public abstract class TilePowerAcceptor extends RebornMachineTile implements
 		tag.setTag("TilePowerAcceptor", data);
 		return tag;
 	}
-	
+
 	@Override
 	public void resetUpgrades() {
 		super.resetUpgrades();
@@ -196,31 +204,39 @@ public abstract class TilePowerAcceptor extends RebornMachineTile implements
 		extraTeir = 0;
 		extraPowerInput = 0;
 	}
-	
+
 	@Override
 	public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
-		if(powerManagers.stream().filter(Objects::nonNull).anyMatch(externalPowerHandler -> externalPowerHandler.hasCapability(capability, facing))) {
-			return true;
-		}
-		return super.hasCapability(capability, facing);
+        for (ExternalPowerHandler externalPowerHandler : powerManagers) {
+            if (externalPowerHandler != null) {
+                if (externalPowerHandler.hasCapability(capability, facing)) {
+                    return true;
+                }
+            }
+        }
+        return super.hasCapability(capability, facing);
 	}
 
 	@Override
 	public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
-		T externalCap = powerManagers.stream()
-			.filter(Objects::nonNull)
-			.map(externalPowerHandler -> externalPowerHandler.getCapability(capability, facing))
-			.filter(Objects::nonNull)
-			.findFirst()
-			.orElse(null);
+        T externalCap = null;
+        for (ExternalPowerHandler externalPowerHandler : powerManagers) {
+            if (externalPowerHandler != null) {
+                T externalPowerHandlerCapability = externalPowerHandler.getCapability(capability, facing);
+                if (externalPowerHandlerCapability != null) {
+                    externalCap = externalPowerHandlerCapability;
+                    break;
+                }
+            }
+        }
 
-		if(externalCap != null){
+        if(externalCap != null){
 			return externalCap;
 		}
 
 		return super.getCapability(capability, facing);
 	}
-	
+
 	public abstract double getBaseMaxPower();
 
 	public abstract double getBaseMaxOutput();
@@ -231,22 +247,26 @@ public abstract class TilePowerAcceptor extends RebornMachineTile implements
 	public EnumPowerTier getBaseTier() {
 		return null;
 	}
-	
+
 	// TileEntity
 	@Override
 	public void invalidate() {
 		super.invalidate();
 
-		powerManagers.forEach(ExternalPowerHandler::invalidate);
-	}
+        for (ExternalPowerHandler powerManager : powerManagers) {
+            powerManager.invalidate();
+        }
+    }
 
 	@Override
 	public void onChunkUnload() {
 		super.onChunkUnload();
 
-		powerManagers.forEach(ExternalPowerHandler::unload);
-	}
-	
+        for (ExternalPowerHandler powerManager : powerManagers) {
+            powerManager.unload();
+        }
+    }
+
 	// IEnergyInterfaceTile
 	@Override
 	public double getEnergy() {
@@ -302,7 +322,7 @@ public abstract class TilePowerAcceptor extends RebornMachineTile implements
 	public boolean canAddEnergy(double energyIn) {
 		return getEnergy() + energyIn <= getMaxPower();
 	}
-	
+
 	@Override
 	public double getMaxPower() {
 		return getBaseMaxPower() + extraPowerStoage;
@@ -315,7 +335,7 @@ public abstract class TilePowerAcceptor extends RebornMachineTile implements
 			maxOutput = this.getTier().getMaxOutput();
 		}
 		else {
-			maxOutput = getBaseMaxOutput();	
+			maxOutput = getBaseMaxOutput();
 		}
 		return maxOutput;
 	}
@@ -355,7 +375,7 @@ public abstract class TilePowerAcceptor extends RebornMachineTile implements
 		}
 		return baseTier;
 	}
-	
+
 	// IListInfoProvider
 	@Override
 	public void addInfo(List<String> info, boolean isRealTile) {

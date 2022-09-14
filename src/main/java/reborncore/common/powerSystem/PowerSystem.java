@@ -28,10 +28,10 @@ import net.minecraftforge.fml.common.FMLCommonHandler;
 import org.apache.commons.io.FileUtils;
 import reborncore.common.RebornCoreConfig;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
-import java.util.Arrays;
 import java.util.Locale;
 import java.util.function.Supplier;
 
@@ -164,7 +164,14 @@ public class PowerSystem {
 
 			try {
 				String value = FileUtils.readFileToString(selectedFile, StandardCharsets.UTF_8);
-				selectedSystem = Arrays.stream(EnergySystem.values()).filter(energySystem -> energySystem.abbreviation.equalsIgnoreCase(value)).findFirst().orElse(EnergySystem.values()[0]);
+                EnergySystem found = EnergySystem.values()[0];
+                for (EnergySystem energySystem : EnergySystem.values()) {
+                    if (energySystem.abbreviation.equalsIgnoreCase(value)) {
+                        found = energySystem;
+                        break;
+                    }
+                }
+                selectedSystem = found;
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

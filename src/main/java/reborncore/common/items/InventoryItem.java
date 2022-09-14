@@ -36,9 +36,8 @@ import org.apache.commons.lang3.Validate;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 public class InventoryItem implements IItemHandler, IItemHandlerModifiable, ICapabilityProvider {
 
@@ -88,9 +87,13 @@ public class InventoryItem implements IItemHandler, IItemHandlerModifiable, ICap
 	}
 
 	public List<ItemStack> getAllStacks() {
-		return IntStream.range(0, size)
-			.mapToObj(this::getStackInSlot)
-			.collect(Collectors.toList());
+        List<ItemStack> list = new ArrayList<>();
+        int bound = size;
+        for (int i = 0; i < bound; i++) {
+            ItemStack stackInSlot = getStackInSlot(i);
+            list.add(stackInSlot);
+        }
+        return list;
 	}
 
 	@Override

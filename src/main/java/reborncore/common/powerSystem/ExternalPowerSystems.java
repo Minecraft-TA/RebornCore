@@ -30,6 +30,7 @@ import net.minecraft.util.EnumFacing;
 import reborncore.RebornCore;
 import reborncore.api.power.ExternalPowerManager;
 import reborncore.common.powerSystem.forge.ForgePowerItemManager;
+import reborncore.common.powerSystem.forge.ForgePowerManager;
 import reborncore.common.registration.IRegistryFactory;
 import reborncore.common.registration.RebornRegistry;
 import reborncore.common.registration.RegistryTarget;
@@ -99,6 +100,8 @@ public class ExternalPowerSystems implements IRegistryFactory {
 			try {
 				ExternalPowerManager powerManager = (ExternalPowerManager) clazz.newInstance();
 				externalPowerHandlerList.add(powerManager);
+                // Move forge power manager to the end of the list
+                externalPowerHandlerList.sort((a, b) -> a instanceof ForgePowerManager ? 1 : 0);
 				RebornCore.logHelper.info("Loaded power manager from: " + powerManager.getClass().getSimpleName());
 			} catch (InstantiationException | IllegalAccessException e) {
 				throw new RuntimeException("Failed to register compat module", e);

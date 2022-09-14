@@ -110,25 +110,25 @@ public class RebornMachineTile extends TileEntity implements ITickable, ISidedIn
         if (block instanceof RebornMachineBlock) {
             return ((RebornMachineBlock) block).getFacing(world, pos);
         } else if (block instanceof RebornOrientableTileBlock) {
-	        return ((RebornOrientableTileBlock) block).getFacing(world, pos);
+            return ((RebornOrientableTileBlock) block).getFacing(world, pos);
         }
         return null;
     }
 
-	public boolean canSetFacing(EnumFacing facing) {
-		return facing != getFacing();
-	}
+    public boolean canSetFacing(EnumFacing facing) {
+        return facing != getFacing();
+    }
 
-	public boolean setFacing(EnumFacing facing) {
-		Block block = world.getBlockState(pos).getBlock();
-		if (block instanceof RebornMachineBlock) {
-			world.setBlockState(pos, world.getBlockState(pos).withProperty(RebornMachineBlock.FACING, facing));
-			return true;
-		} else if (block instanceof RebornOrientableTileBlock) {
-			world.setBlockState(pos, world.getBlockState(pos).withProperty(RebornOrientableTileBlock.FACING, facing));
-		}
-		return false;
-	}
+    public boolean setFacing(EnumFacing facing) {
+        Block block = world.getBlockState(pos).getBlock();
+        if (block instanceof RebornMachineBlock) {
+            world.setBlockState(pos, world.getBlockState(pos).withProperty(RebornMachineBlock.FACING, facing));
+            return true;
+        } else if (block instanceof RebornOrientableTileBlock) {
+            world.setBlockState(pos, world.getBlockState(pos).withProperty(RebornOrientableTileBlock.FACING, facing));
+        }
+        return false;
+    }
 
     public Optional<Inventory> getInventoryForTile() {
         if (this instanceof IInventoryProvider) {
@@ -190,19 +190,19 @@ public class RebornMachineTile extends TileEntity implements ITickable, ISidedIn
     }
 
     public void setActive(boolean active) {
-		Block block = world.getBlockState(pos).getBlock();
-		if (block instanceof RebornMachineBlock) {
-			((RebornMachineBlock) block).setActive(active, world, pos);
-		}
-		return;
+        Block block = world.getBlockState(pos).getBlock();
+        if (block instanceof RebornMachineBlock) {
+            ((RebornMachineBlock) block).setActive(active, world, pos);
+        }
+        return;
     }
 
     public boolean isActive() {
-		Block block = world.getBlockState(pos).getBlock();
-		if (block instanceof RebornMachineBlock) {
-			return ((RebornMachineBlock) block).isActive(world.getBlockState(pos));
-		}
-		return false;
+        Block block = world.getBlockState(pos).getBlock();
+        if (block instanceof RebornMachineBlock) {
+            return ((RebornMachineBlock) block).isActive(world.getBlockState(pos));
+        }
+        return false;
     }
 
     // TileEntity
@@ -222,8 +222,8 @@ public class RebornMachineTile extends TileEntity implements ITickable, ISidedIn
             }
         }
         if (upgradeFacing != null) {
-        	setFacing(upgradeFacing);
-        	upgradeFacing = null;
+            setFacing(upgradeFacing);
+            upgradeFacing = null;
         }
     }
 
@@ -263,9 +263,9 @@ public class RebornMachineTile extends TileEntity implements ITickable, ISidedIn
         super.readFromNBT(tagCompound);
 
         if (tagCompound.hasKey("facing")) {
-        	// Upgrade from older versions of the mod
-	        byte facingValue = tagCompound.getByte("facing");
-	        upgradeFacing = EnumFacing.VALUES[facingValue];
+            // Upgrade from older versions of the mod
+            byte facingValue = tagCompound.getByte("facing");
+            upgradeFacing = EnumFacing.VALUES[facingValue];
         }
 
         if (getInventoryForTile().isPresent()) {
@@ -320,12 +320,13 @@ public class RebornMachineTile extends TileEntity implements ITickable, ISidedIn
 
     @Override
     public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
-        if (capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) return true;
+        if (capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY)
+            return true;
 
         if (getTank() != null && capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) {
             if (fluidConfiguration != null && fluidConfiguration.getSideDetail(facing) != null) {
                 FluidConfiguration.FluidConfig fluidConfig = fluidConfiguration.getSideDetail(facing);
-				return fluidConfig.getIoConfig().isEnabled();
+                return fluidConfig.getIoConfig().isEnabled();
             }
 
             return true;
@@ -341,7 +342,7 @@ public class RebornMachineTile extends TileEntity implements ITickable, ISidedIn
         }
 
         if (getTank() != null && capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) {
-        	return CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY.cast(new RebornFluidHandler(this, facing));
+            return CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY.cast(new RebornFluidHandler(this, facing));
         }
 
         return super.getCapability(capability, facing);
@@ -358,7 +359,7 @@ public class RebornMachineTile extends TileEntity implements ITickable, ISidedIn
         if (canBeUpgraded()) {
             resetUpgrades();
             for (int i = 0; i < getUpgradeSlotCount(); i++) {
-            	ItemStack stack = getUpgradeInventory().getStackInSlot(i);
+                ItemStack stack = getUpgradeInventory().getStackInSlot(i);
                 if (!stack.isEmpty() && stack.getItem() instanceof IUpgrade) {
                     ((IUpgrade) stack.getItem()).process(this, stack);
                 }
@@ -442,7 +443,7 @@ public class RebornMachineTile extends TileEntity implements ITickable, ISidedIn
     @Override
     public boolean isUsableByPlayer(EntityPlayer player) {
         return world.getTileEntity(this.pos) == this &&
-                player.getDistanceSq((double) this.pos.getX() + 0.5D, (double) this.pos.getY() + 0.5D, (double) this.pos.getZ() + 0.5D) <= 64.0D;
+               player.getDistanceSq((double) this.pos.getX() + 0.5D, (double) this.pos.getY() + 0.5D, (double) this.pos.getZ() + 0.5D) <= 64.0D;
     }
 
     @Override
@@ -528,9 +529,10 @@ public class RebornMachineTile extends TileEntity implements ITickable, ISidedIn
         if (slotConfiguration == null) {
             return new int[]{}; //I think should be ok, if needed this can return all the slots
         }
-        int[] arr = new int[10];
+        int[] arr = new int[6];
         int count = 0;
-        for (SlotConfiguration.SlotConfig slotConfig : slotConfiguration.getSlotsForSide(side)) {
+        for (SlotConfiguration.SlotConfigHolder slotConfigHolder : slotConfiguration.slotDetails) {
+            SlotConfiguration.SlotConfig slotConfig = slotConfigHolder.getSideDetail(side);
             if (slotConfig != null) {
                 if (slotConfig.slotIO.ioConfig != SlotConfiguration.ExtractConfig.NONE) {
                     int slotID = slotConfig.slotID;
@@ -540,8 +542,11 @@ public class RebornMachineTile extends TileEntity implements ITickable, ISidedIn
                 }
             }
         }
-        arr = Arrays.copyOfRange(arr, 0, count);
-        return arr;
+
+        if (arr.length == count)
+            return arr;
+        else
+            return Arrays.copyOf(arr, count);
     }
 
     @Override
